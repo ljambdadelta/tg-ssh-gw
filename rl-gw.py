@@ -3,58 +3,42 @@
 import requests
 import time
 
-class tg:
-
-#---Initialisation
-    def __init__( self,
-                  token ):
-    
-        self.token   = token
+class Telegram:
+    def __init__(self, token):
+        self.token = token
         self.api_url = "https://api.telegram.org/bot{}/".format(token)
-#---Request to tg server
-    def get_updates( self,
-                     offset  = None, 
-                     timeout = 3000  ):
 
-        method      = 'getUpdates'
-        params      = { 'timeout': timeout ,
-                        'offset' : offset  }
-        answer      = requests.get( self.api_url + method, params )
-        answer2json = answer.json()[ 'result' ]
-        
+    def get_updates(self, offset=None, timeout=3000):
+        method = 'getUpdates'
+        params = {'timeout': timeout, 'offset' : offset}
+        answer = requests.get(self.api_url + method, params)
+        answer2json = answer.json()['result']
         return answer2json 
         
-#---
-    def send_text( self,
-                   chat_id,
-                   text ):
-    
-        params = { 'chat_id' : chat_id ,
-                   'text'    : text    }
+    def send_text(self, chat_id, text):
+        params = {'chat_id': chat_id, 'text': text}
         method = 'sendMessage'
         answer = requests.post( self.api_url + method, params )
-        
         return answer    
-#---
-    def get_last_update( self ):
+
+    def get_last_update(self):
         get_answer = self.get_updates()
-        if len( get_answer ) > 0:
-            last_update = get_answer[ -1 ]
+        if len(get_answer) > 0:
+            last_update = get_answer[-1]
         else:
             try:
-                last_update = get_answer[ len( get_answer ) ]
+                last_update = get_answer[len(get_answer)]
             except:
-                print( last_update )
-                print( time.clock )
-
+                print(last_update)
+                print(time.clock)
         return last_update
 
 #---
 #---
 #--- HARDCODED !!!
 token = ""
-telegram = tg( token )
-#- parce the nature of send data
+telegram = Telegram(token)
+#- parse the nature of send data
 def parseTypeOfMessage( msgBuffer ):
     print ( msgBuffer ) 
     try:
