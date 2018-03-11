@@ -60,44 +60,35 @@ def parse_type_of_message(msg_buffer):
     if 'forward_from_chat' in msg_buffer['message']:
             msg = '<forward from channel: {0}>: {1}'.format(msg_buffer['message']['forward_from_chat']['title'] , msg)
     if 'forward_from' in msg_buffer['message']:
-            msg = '< forward from: {0} >: {1}'.format(msg_buffer['message']['forward_from']['username'] , msg)
+            msg = '< forward from: @{0} >: {1}'.format(msg_buffer['message']['forward_from']['username'] , msg)
     if 'reply_to_message' in msg_buffer['message']:
             msg = '< answer for @{0} > {1}'.format(msg_buffer['message']['reply_to_message']['from']['username'], msg)
     return msg
 
-def main():
-    parsed+msg_id = None
+def send_message(message_type, msg_buffer):
     log = open("./tg.log", "a")
+    msg_chat_id =  msg_buffer[message_type]['chat']['id'] 
+    msg_name = msg_buffer[message_type]['from']['username']
+    msg_text = parse_type_of_message(msg_buffer) if message_type == 'message' else msg_buffer[message_type]['text']
+    link_sentence = ' sent: ' if message_type == 'message' else ' changed his mmessage to '
+    timestamp = time.ctime(time.time())
+    output = '@{0}{1}"{2}" at {3}\n'.format(msg_name, link_sentence, msg_text, timestamp)
+    telegram.send_text( msg_chat_id, output )
+    log.write( output )
+    log.flush()
+
+
+def main():
+    parsed_msg_id = None
+#    log = open("./tg.log", "a")
     while True:
-        log.write('\n')
-        log.flush()
-        #  1: offset, id of message to be parced; 2: get this msg 
-        telegram.get_updates(parsed+msg_id)
+        telegram.get_updates(parsed_msg_id)
         msg_buffer = telegram.get_last_update()
-        # parcing
         msg_upd_id = msg_buffer['update_id']
-        # prepared for nxt itteration
-        parsed+msg_id = msg_upd_id + 1
-        # edited text has own type
-        if 'edited_message' in msg_buffer:
-            emsg_chat_id = msg_buffer['edited_message']['chat']['id']
-            emsg_name = msg_buffer['edited_message']['from']['username']
-            emsg_text = msg_buffer['edited_message']['text']
-            r = '@{0} changed his message to "{1}" '.format(emsg_name,emsg_text)
-            telegram.send_text(emsg_chat_id, r)
-            log.write(r)
-            log.write(time.ctime(time.time()))
-            continue
+        parsed_msg_id = msg_upd_id + 1
 
-        msg_text = parse_type_of_message(msg_buffer)
-        msg_chat_id = msg_buffer['message']['chat']['id']
-        msg_name = msg_buffer['message']['from']['username']
-
-        response = '@{0} sent: {1} '.format(msg_name, msg_text)
-        telegram.send_text(msg_chat_id, response)
-        log.write(response)
-        log.write(time.ctime(time.time()))
-
+        message_type = 'message' if 'message' in msg_buffer else 'edited_message'
+        send_message(message_type, msg_buffer)
 if __name__ == '__main__':
     try:
         main()
