@@ -80,7 +80,6 @@ def send_message(message_type, msg_buffer):
 
 def main():
     parsed_msg_id = None
-#    log = open("./tg.log", "a")
     while True:
         telegram.get_updates(parsed_msg_id)
         msg_buffer = telegram.get_last_update()
